@@ -18,12 +18,24 @@ class TicketController extends Controller
 
         $query = Ticket::with(['user','category']);
 
-        if ($request->status) {
+        // 🔍 Search
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // 📌 Status filter
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->priority) {
+        // ⚡ Priority filter
+        if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
+        }
+
+        // 🗂 Category filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
         }
 
         return TicketResource::collection(

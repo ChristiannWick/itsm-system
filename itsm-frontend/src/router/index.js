@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.store'
 
 import LoginView from '@/views/Login.vue'
 import TicketListView from '@/views/TicketListView.vue'
+import DashboardView from '@/views/DashboardView.vue'
 import AppLayout from '../components/AppLayout.vue'
 
 const routes = [
@@ -12,6 +13,7 @@ const routes = [
         path: '/',
         component: AppLayout,
         children: [
+             { path: '', component: DashboardView }, // 👈 default page
             { 
                 path: 'tickets', 
                 component: TicketListView, 

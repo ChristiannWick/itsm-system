@@ -1,5 +1,48 @@
 <template>
     <div class="max-w-5xl mx-auto space-y-6">
+        <div class="bg-white p-4 rounded-xl shadow flex flex-wrap gap-3">
+
+            <!-- Search -->
+            <input
+                v-model="filters.search"
+                placeholder="Search title..."
+                class="border p-2 rounded w-48"
+            />
+
+            <!-- Status -->
+            <select v-model="filters.status" class="border p-2 rounded">
+                <option value="">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+            </select>
+
+            <!-- Priority -->
+            <select v-model="filters.priority" class="border p-2 rounded">
+                <option value="">All Priority</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+
+            <!-- Category -->
+            <select v-model="filters.category_id" class="border p-2 rounded">
+                <option value="">All Categories</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+                </option>
+            </select>
+
+            <!-- Apply -->
+            <button
+                @click="loadTickets"
+                class="bg-blue-500 text-white px-4 rounded"
+            >
+                Apply
+            </button>
+
+        </div>
         <!-- Form -->
         <div class="bg-white p-4 rounded-xl shadow space-y-3">
             <h3 class="font-semibold text-lg">Create Ticket</h3>
@@ -132,7 +175,7 @@
 
 
 <script setup>
-import { ref, onMounted, onUnmounted  } from 'vue';
+import { ref, onMounted, onUnmounted, watch  } from 'vue';
 import { getTickets, createTicket, updateTicket, deleteTicket } from '@/api/ticket.api'
 import { getCategories } from '@/api/category.api'
 import { useAuthStore } from '@/stores/auth.store'
@@ -149,12 +192,18 @@ const form = ref({
     description: '',
     category_id: null,
 })
+const filters = ref({
+  search: '',
+  status: '',
+  priority: '',
+  category_id: '',
+})
 const loading = ref(false)
 const editingId = ref(null)
 
 
 const loadTickets = async () => {
-    const {data} = await getTickets()
+    const {data} = await getTickets(filters.value)
     tickets.value = data.data
 }
 
@@ -278,4 +327,8 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(interval)
 })
+
+watch(filters, () => {
+  loadTickets()
+}, { deep: true })
 </script>

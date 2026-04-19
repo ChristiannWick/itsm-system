@@ -7,11 +7,18 @@
 
             <nav class="space-y-2">
                 <router-link
+                    to="/"
+                    class="block px-2 py-1 rounded hover:bg-gray-700"
+                    >
+                    Dashboard
+                </router-link>
+                <router-link
                     to="/tickets"
                     class="block px-2 py-1 rounded hover:bg-gray-700"
                     >
                     Tickets
                 </router-link>
+                
             </nav>
         </aside>
 
