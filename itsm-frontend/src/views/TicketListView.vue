@@ -63,19 +63,66 @@
                         {{ ticket.status }}
                     </span>
 
-                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded">
-                    {{ ticket.priority }}
+                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                        {{ ticket.priority }}
+                    </span>
+
+                    <!-- SLA -->
+                    <span 
+                        class="text-xs px-2 py-1 rounded"
+                        :class="slaClass(ticket.sla_due_at)"
+                    >
+                        ⏱ {{ getRemainingTime(ticket.sla_due_at) }}
                     </span>
                 </div>
+
+                <div class="mt-4">
+
+                    <button 
+                        @click="loadComments(ticket.id)" 
+                        class="text-sm text-blue-500"
+                    >
+                        Load Comments
+                    </button>
+
+                    <div v-if="comments[ticket.id]" class="mt-2 space-y-2">
+
+                        <div 
+                        v-for="c in comments[ticket.id]" 
+                        :key="c.id"
+                        class="bg-gray-100 p-2 rounded text-sm"
+                        >
+                        <strong>{{ c.user.name }}</strong>: {{ c.content }}
+                        </div>
+
+                        <div class="flex gap-2 mt-2">
+                        <input 
+                            v-model="commentInput[ticket.id]" 
+                            placeholder="Write a comment..."
+                            class="flex-1 border p-1 rounded"
+                        />
+
+                        <button 
+                            @click="submitComment(ticket.id)"
+                            class="bg-blue-500 text-white px-2 rounded"
+                        >
+                            Send
+                        </button>
+                        </div>
+
+                    </div>
+                </div>
+
                 </div>
 
                 <div class="space-x-2">
-                <button @click="startEdit(ticket)" class="text-blue-500 text-sm">
-                    Edit
-                </button>
-                <button @click="remove(ticket.id)" class="text-red-500 text-sm">
-                    Delete
-                </button>
+                   
+                    <button @click="startEdit(ticket)" class="text-blue-500 text-sm">
+                        Edit
+                    </button>
+                    <button @click="remove(ticket.id)" class="text-red-500 text-sm">
+                        Delete
+                    </button>
                 </div>
             </div>
             </div>
@@ -85,11 +132,12 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted  } from 'vue';
 import { getTickets, createTicket, updateTicket, deleteTicket } from '@/api/ticket.api'
 import { getCategories } from '@/api/category.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
+import { getComments, createComment } from '@/api/comment.api'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -169,13 +217,65 @@ const statusClass = (status) => {
   }[status] || 'bg-gray-100'
 }
 
+
+// comments
+const comments = ref({})
+const commentInput = ref({})
+
+const loadComments = async (ticketId) => {
+  const { data } = await getComments(ticketId)
+  comments.value[ticketId] = data
+}
+
+const submitComment = async (ticketId) => {
+  const { data } = await createComment(ticketId, {
+    content: commentInput.value[ticketId],
+  })
+
+  comments.value[ticketId].unshift(data)
+  commentInput.value[ticketId] = ''
+}
+
+
+//SLA
+const getRemainingTime = (due) => {
+  const diff = new Date(due) - new Date()
+
+  if (diff <= 0) return 'BREACHED'
+
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+  return `${hours}h ${minutes}m`
+}
+
+const slaClass = (due) => {
+  const diff = new Date(due) - new Date()
+  const hours = diff / (1000 * 60 * 60)
+
+  if (diff <= 0) return 'bg-red-100 text-red-700'
+  if (hours < 4) return 'bg-orange-100 text-orange-700'
+  if (hours < 12) return 'bg-yellow-100 text-yellow-700'
+
+  return 'bg-green-100 text-green-700'
+}
+
 const logout = () => {
     auth.logout()
     router.push('/login')
 }
 
+let interval = null
 onMounted(() => {
     loadTickets()
     loadCategories()
+
+    interval = setInterval(() => {
+        tickets.value = [...tickets.value] // force re-render
+    }, 60000) // update every minute
+})
+
+onUnmounted(() => {
+  clearInterval(interval)
 })
 </script>

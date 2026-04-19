@@ -31,6 +31,7 @@ class TicketResource extends JsonResource
             'category_id' => $this->category?->id,
 
             'created_at' => $this->created_at,
+            'sla_due_at' => $this->sla_due_at,
         ];
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
+use Carbon\Carbon;
+
 
 class TicketController extends Controller
 {
@@ -31,14 +33,29 @@ class TicketController extends Controller
 
     public function store(StoreTicketRequest $request)
     {
+        // Simple SLA logic (we'll improve later)
+        $priority = $request->priority ?? 'medium';
+        
+        $hours = match ($priority) {
+            'low' => 72,
+            'medium' => 48,
+            'high' => 24,
+            'critical' => 8,
+            default => 48,
+        };
+
         $ticket = Ticket::create([
             'title' => $request->title,
             'description' => $request->description,
             'user_id' => $request->user()->id,
             'category_id' => $request->category_id,
+            'priority' => $priority,
+            'status' => 'open',
+            'sla_due_at' => Carbon::now()->addHours($hours),
         ]);
 
-        return response()->json($ticket, 201);
+        // return response()->json($ticket, 201);
+        return new TicketResource($ticket->load(['user', 'category']));
     }
 
     public function show(Ticket $ticket)
