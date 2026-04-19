@@ -7,3 +7,11 @@ export const getTickets = (params = {}) => {
 export const createTicket = (payload) => {
     return api.post('/tickets', payload)
 }
+
+export const updateTicket = (id, payload) => {
+    return api.put(`/tickets/${id}`, payload)
+}
+
+export const deleteTicket = (id) => {
+    return api.delete(`/tickets/${id}`)
+}

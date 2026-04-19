@@ -21,7 +21,26 @@
         <!-- Ticket List -->
         <ul>
             <li v-for="ticket in tickets" :key="ticket.id">
-                {{ ticket.title }} - {{ ticket.status }} - {{ ticket.category }}
+                <div v-if="editingId !== ticket.id">
+                    {{ ticket.title }} - {{ ticket.description }} - {{ ticket.status }} - {{ ticket.category }}
+
+                    <button @click="startEdit(ticket)">Edit</button>
+                    <button @click="remove(ticket.id)">Delete</button>
+                </div>
+
+                <div v-else>
+                    <input v-model="form.title" />
+                    <textarea v-model="form.description"></textarea>
+                    <select v-model="form.category_id">
+                        <option disabled value="">Select Category</option>
+                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                            {{ cat.name }}
+                        </option>
+                    </select>
+
+                    <button @click="submitEdit">Save</button>
+                    <button @click="editingId = null">Cancel</button>
+                </div>
             </li>
         </ul>
 
@@ -32,7 +51,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getTickets, createTicket } from '@/api/ticket.api'
+import { getTickets, createTicket, updateTicket, deleteTicket } from '@/api/ticket.api'
 import { getCategories } from '@/api/category.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
@@ -48,6 +67,7 @@ const form = ref({
     category_id: null,
 })
 const loading = ref(false)
+const editingId = ref(null)
 
 
 const loadTickets = async () => {
@@ -70,6 +90,39 @@ const submit = async () => {
 const loadCategories = async () => {
     const { data } = await getCategories()
     categories.value = data
+}
+
+const startEdit = (ticket) => {
+    editingId.value = ticket.id
+
+    form.value = {
+        title: ticket.title,
+        description: ticket.description,
+        category_id: ticket.category_id
+    }
+    console.log(form.value, 'form.value at startEdit()')
+}
+
+const submitEdit = async () => {
+    const { data } = await updateTicket(editingId.value, form.value)
+
+    // update UI
+    const index = tickets.value.findIndex(t => t.id === editingId.value)
+    tickets.value[index] = data.data
+
+    editingId.value = null
+
+    form.value = {
+        title: '',
+        description: '',
+        category_id: null,
+    }
+}
+
+const remove = async (id) => {
+    await deleteTicket(id)
+
+    tickets.value = tickets.value.filter(t => t.id !== id)
 }
 
 const logout = () => {

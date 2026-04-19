@@ -28,6 +28,7 @@ class TicketResource extends JsonResource
             ],
 
             'category' => $this->category?->name,
+            'category_id' => $this->category?->id,
 
             'created_at' => $this->created_at,
         ];
