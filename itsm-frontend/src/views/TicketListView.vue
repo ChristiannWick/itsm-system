@@ -42,6 +42,13 @@
                 Apply
             </button>
 
+            <button 
+            @click="filters = { search:'', status:'', priority:'', category_id:'' }"
+            class="text-sm text-gray-500"
+            >
+                Reset Filters
+            </button>
+
         </div>
         <!-- Form -->
         <div class="bg-white p-4 rounded-xl shadow space-y-3">
@@ -181,6 +188,8 @@ import { getCategories } from '@/api/category.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
 import { getComments, createComment } from '@/api/comment.api'
+import _ from 'lodash'
+
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -328,7 +337,12 @@ onUnmounted(() => {
   clearInterval(interval)
 })
 
+// watch(filters, () => {
+//   loadTickets()
+// }, { deep: true })
+
+const debouncedLoad = _.debounce(loadTickets, 500)
 watch(filters, () => {
-  loadTickets()
+  debouncedLoad()
 }, { deep: true })
 </script>

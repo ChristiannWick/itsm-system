@@ -19,8 +19,11 @@ class TicketController extends Controller
         $query = Ticket::with(['user','category']);
 
         // 🔍 Search
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', "%{$request->search}%")
+                ->orWhere('description', 'like', "%{$request->search}%");
+            });
         }
 
         // 📌 Status filter
