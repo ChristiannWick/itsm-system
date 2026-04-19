@@ -1,50 +1,85 @@
 <template>
-    <div>
-        <h2>Tickets</h2>
+    <div class="max-w-5xl mx-auto space-y-6">
+        <!-- Form -->
+        <div class="bg-white p-4 rounded-xl shadow space-y-3">
+            <h3 class="font-semibold text-lg">Create Ticket</h3>
 
-        <!-- Create Ticket Form -->
-        <form @submit.prevent="submit">
-            <input v-model="form.title" placeholder="Title" />
-            <textarea v-model="form.description" placeholder="Description"></textarea>
-            <select v-model="form.category_id">
+            <form @submit.prevent="submit" class="space-y-3">
+
+                <input 
+                v-model="form.title" 
+                placeholder="Title"
+                class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+
+                <textarea 
+                v-model="form.description"
+                placeholder="Description"
+                class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                ></textarea>
+
+                <select 
+                v-model="form.category_id"
+                class="w-full border rounded-lg p-2"
+                >
                 <option disabled value="">Select Category</option>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                     {{ cat.name }}
                 </option>
-            </select>
-            
-            <button>Create Ticket</button>
-        </form>
+                </select>
 
-        <hr>
+                <button 
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                    Create Ticket
+                </button>
 
-        <!-- Ticket List -->
-        <ul>
-            <li v-for="ticket in tickets" :key="ticket.id">
-                <div v-if="editingId !== ticket.id">
-                    {{ ticket.title }} - {{ ticket.description }} - {{ ticket.status }} - {{ ticket.category }}
+            </form>
+        </div>
+      
 
-                    <button @click="startEdit(ticket)">Edit</button>
-                    <button @click="remove(ticket.id)">Delete</button>
+        <div class="bg-white p-4 rounded-xl shadow space-y-3">
+            <h3 class="font-semibold text-lg">Tickets</h3>
+
+            <div 
+                v-for="ticket in tickets" 
+                :key="ticket.id" 
+                class="border rounded-lg p-4 flex justify-between items-center hover:shadow transition"
+            >
+                <div>
+                <p class="font-medium text-gray-800">
+                    {{ ticket.title }}
+                </p>
+
+                <p class="text-sm text-gray-500">
+                    {{ ticket.description }}
+                </p>
+
+                <div class="flex gap-2 mt-2">
+                    <span 
+                        class="text-xs px-2 py-1 rounded"
+                        :class="statusClass(ticket.status)"
+                        >
+                        {{ ticket.status }}
+                    </span>
+
+                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded">
+                    {{ ticket.priority }}
+                    </span>
+                </div>
                 </div>
 
-                <div v-else>
-                    <input v-model="form.title" />
-                    <textarea v-model="form.description"></textarea>
-                    <select v-model="form.category_id">
-                        <option disabled value="">Select Category</option>
-                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                            {{ cat.name }}
-                        </option>
-                    </select>
-
-                    <button @click="submitEdit">Save</button>
-                    <button @click="editingId = null">Cancel</button>
+                <div class="space-x-2">
+                <button @click="startEdit(ticket)" class="text-blue-500 text-sm">
+                    Edit
+                </button>
+                <button @click="remove(ticket.id)" class="text-red-500 text-sm">
+                    Delete
+                </button>
                 </div>
-            </li>
-        </ul>
+            </div>
+            </div>
 
-        <button @click="logout">Logout</button>
     </div>
 </template>
 
@@ -123,6 +158,15 @@ const remove = async (id) => {
     await deleteTicket(id)
 
     tickets.value = tickets.value.filter(t => t.id !== id)
+}
+
+const statusClass = (status) => {
+  return {
+    open: 'bg-yellow-100 text-yellow-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+    resolved: 'bg-green-100 text-green-700',
+    closed: 'bg-gray-200 text-gray-700',
+  }[status] || 'bg-gray-100'
 }
 
 const logout = () => {

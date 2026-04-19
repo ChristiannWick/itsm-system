@@ -3,10 +3,22 @@ import { useAuthStore } from '@/stores/auth.store'
 
 import LoginView from '@/views/Login.vue'
 import TicketListView from '@/views/TicketListView.vue'
+import AppLayout from '../components/AppLayout.vue'
 
 const routes = [
     { path: '/login', component: LoginView },
-    { path: '/tickets', component: TicketListView, meta: {requiresAuth: true} },
+    // { path: '/tickets', component: TicketListView, meta: {requiresAuth: true} },
+    {
+        path: '/',
+        component: AppLayout,
+        children: [
+            { 
+                path: 'tickets', 
+                component: TicketListView, 
+                meta: {requiresAuth: true} 
+            }
+        ]
+    }
 ]
 
 
