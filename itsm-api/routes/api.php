@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\TicketController;
 
 Route::get('/user', function (Request $request) {
@@ -19,6 +20,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
+    
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
@@ -27,7 +29,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('tickets', TicketController::class);
 
         Route::get('/tickets/{ticket}/comments', [CommentController::class, 'index']);
-    Route::post('/tickets/{ticket}/comments', [CommentController::class, 'store']);
+        Route::post('/tickets/{ticket}/comments', [CommentController::class, 'store']);
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 
     Route::apiResource('categories', CategoryController::class);
