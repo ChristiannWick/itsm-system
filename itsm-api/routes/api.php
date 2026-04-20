@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -33,7 +34,18 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+        Route::apiResource('categories', CategoryController::class);
+
     });
 
-    Route::apiResource('categories', CategoryController::class);
+    Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
+
+        Route::get('/users', [UserController::class,'index']);
+
+        Route::put('/users/{user}/role', [UserController::class,'updateRole']);
+
+    });
+
 });
+

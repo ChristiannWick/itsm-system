@@ -5,6 +5,7 @@ import LoginView from '@/views/Login.vue'
 import TicketListView from '@/views/TicketListView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import AppLayout from '../components/AppLayout.vue'
+import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 
 const routes = [
     { path: '/login', component: LoginView },
@@ -13,11 +14,15 @@ const routes = [
         path: '/',
         component: AppLayout,
         children: [
-             { path: '', component: DashboardView }, // 👈 default page
+            { path: '', component: DashboardView }, // 👈 default page
             { 
                 path: 'tickets', 
                 component: TicketListView, 
                 meta: {requiresAuth: true} 
+            },
+            {
+                path:'admin/users',
+                component:AdminUsersView
             }
         ]
     }
@@ -31,6 +36,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
     const auth = useAuthStore()
+    console.log(auth.token,'token in index.js')
 
     if (to.meta.requiresAuth && !auth.token) {
         return '/login'

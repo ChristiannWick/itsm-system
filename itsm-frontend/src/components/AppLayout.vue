@@ -19,6 +19,15 @@
                     >
                     Tickets
                 </router-link>
+                <router-link
+                    v-if="auth.user.role === 'admin'"
+                    to="/admin/users"
+                    class="block px-2 py-1 rounded hover:bg-gray-700"
+                    >
+
+                    Users
+
+                </router-link>
                 
             </nav>
         </aside>
@@ -29,6 +38,9 @@
             <!-- Topbar -->
             <header class="bg-white shadow px-6 py-3 flex justify-between items-center">
                 <span class="font-semibold">Dashboard</span>
+                
+                <button @click="logout" class="text-red-500">Logout</button>
+
                 <div class="relative">
 
                     <button class="relative">
@@ -55,7 +67,6 @@
                     </div>
 
                 </div>
-                <button @click="logout" class="text-red-500">Logout</button>
 
             </header>
 
@@ -96,8 +107,8 @@ const markRead = async (n) => {
 onMounted(() => {
   loadNotifications()
 
-  setInterval(() => {
-    loadNotifications()
-  }, 10000) // every 10s
+//   setInterval(() => {
+//     loadNotifications()
+//   }, 10000) // every 10s
 })
 </script>

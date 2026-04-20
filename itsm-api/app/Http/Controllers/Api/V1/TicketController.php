@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
+use App\Services\TicketService;
 use Carbon\Carbon;
 
 
@@ -18,6 +19,10 @@ class TicketController extends Controller
 
         $query = Ticket::with(['user','category']);
 
+        if ($request->user()->role === 'user') {
+            $query->where('user_id', $request->user()->id);
+        }
+        
         // 🔍 Search
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -46,28 +51,10 @@ class TicketController extends Controller
         );
     }
 
-    public function store(StoreTicketRequest $request)
+    public function store(StoreTicketRequest $request, TicketService $service)
     {
-        // Simple SLA logic (we'll improve later)
-        $priority = $request->priority ?? 'medium';
         
-        $hours = match ($priority) {
-            'low' => 72,
-            'medium' => 48,
-            'high' => 24,
-            'critical' => 8,
-            default => 48,
-        };
-
-        $ticket = Ticket::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'user_id' => $request->user()->id,
-            'category_id' => $request->category_id,
-            'priority' => $priority,
-            'status' => 'open',
-            'sla_due_at' => Carbon::now()->addHours($hours),
-        ]);
+        $ticket = $service->createTicket($request);
 
         // return response()->json($ticket, 201);
         return new TicketResource($ticket->load(['user', 'category']));
@@ -86,6 +73,17 @@ class TicketController extends Controller
      */
     public function update(UpdateTicketRequest $request, Ticket $ticket)
     {
+
+        $user = $request->user();
+
+        if (
+            $user->id !== $ticket->user_id &&
+            !$user->isAdmin() &&
+            !$user->isAgent()
+        ) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $ticket->update($request->validated());
 
         return new TicketResource(
@@ -96,8 +94,13 @@ class TicketController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ticket $ticket)
+    public function destroy(Request $request, Ticket $ticket)
     {
+
+        if (!$request->user()->isAdmin()) {
+            return response()->json(['message' => 'Only admin can delete'], 403);
+        }
+
         $ticket->delete();
 
         return response()->json([

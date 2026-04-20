@@ -167,10 +167,29 @@
 
                 <div class="space-x-2">
                    
-                    <button @click="startEdit(ticket)" class="text-blue-500 text-sm">
+                    <!-- <button @click="startEdit(ticket)" class="text-blue-500 text-sm">
                         Edit
                     </button>
                     <button @click="remove(ticket.id)" class="text-red-500 text-sm">
+                        Delete
+                    </button> -->
+                    <button
+                        class=" text-blue-500 text-sm"
+                        v-if="
+                            auth.user?.role === 'admin' ||
+                            auth.user?.role === 'agent' ||
+                            ticket.user_id === auth.user?.id
+                        "
+                        @click="startEdit(ticket)"
+                        >
+                        Edit
+                    </button>
+                    
+                    <button
+                        class=" text-red-500 text-sm"
+                        v-if="auth.user?.role === 'admin'"
+                        @click="remove(ticket.id)"
+                        >
                         Delete
                     </button>
                 </div>
@@ -222,7 +241,7 @@ const submit = async () => {
     loading.value = false
     console.log(data, 'data in submit')
 
-    tickets.value.unshift(data)
+    tickets.value.unshift(data.data)
 
     form.value.title = ''
     form.value.description = ''
