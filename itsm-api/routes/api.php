@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\CategoryAdminController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,19 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('categories', CategoryController::class);
 
+        Route::post(
+            '/tickets/{ticket}/assign',
+            [TicketController::class,'assign']
+        );
+
+        Route::get(
+
+            '/tickets/{ticket}/activities',
+
+            [TicketController::class,'activities']
+
+        );
+
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->group(function(){
@@ -46,6 +60,28 @@ Route::prefix('v1')->group(function () {
         Route::put('/users/{user}/role', [UserController::class,'updateRole']);
 
     });
+
+    Route::middleware('auth:sanctum')
+        ->prefix('admin')
+        ->group(function(){
+
+            Route::get(
+                '/categories',
+                [CategoryAdminController::class,'index']
+            );
+
+            Route::post(
+                '/categories',
+                [CategoryAdminController::class,'store']
+            );
+
+            Route::delete(
+                '/categories/{category}',
+                [CategoryAdminController::class,'destroy']
+            );
+
+    });
+    
 
 });
 

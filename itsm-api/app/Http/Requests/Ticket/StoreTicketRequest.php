@@ -24,8 +24,9 @@ class StoreTicketRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'category_id' => 'nullable|exists:categories,id',
+            'description' => 'required|string|min:10',
+            'category_id' => 'required|exists:categories,id',
+            'priority' => 'nullable|in:low,medium,high,critical',
         ];
     }
 }

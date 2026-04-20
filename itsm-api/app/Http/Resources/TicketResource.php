@@ -32,6 +32,13 @@ class TicketResource extends JsonResource
 
             'created_at' => $this->created_at,
             'sla_due_at' => $this->sla_due_at,
+
+            'assignee'=> $this->assignee
+                ? [
+                    'id'=>$this->assignee->id,
+                    'name'=>$this->assignee->name
+                ]
+                : null,
         ];
     }
 }

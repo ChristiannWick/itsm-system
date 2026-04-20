@@ -28,6 +28,16 @@
                     Users
 
                 </router-link>
+
+                <router-link
+                    v-if="auth.user?.role==='admin'"
+                    to="/admin/categories"
+                    class="block px-2 py-1 rounded hover:bg-gray-700"
+                    >
+
+                    Categories
+
+                </router-link>
                 
             </nav>
         </aside>

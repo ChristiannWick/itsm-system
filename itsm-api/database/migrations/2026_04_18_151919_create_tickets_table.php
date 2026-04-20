@@ -19,6 +19,10 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained();
             $table->string('status')->default('open');
             $table->string('priority')->default('medium');
+            $table->foreignId('agent_id')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
             $table->timestamps();
         });
     }

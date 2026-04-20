@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['user', 'agent', 'admin'])
-              ->default('user')
-              ->after('email');
+        Schema::table('tickets', function (Blueprint $table) {
+            $table->foreignId('assigned_to')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
         });
     }
 
@@ -23,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('tickets', function (Blueprint $table) {
             //
         });
     }

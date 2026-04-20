@@ -6,6 +6,7 @@ import TicketListView from '@/views/TicketListView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import AppLayout from '../components/AppLayout.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
+import AdminCategoriesView from '@/views/admin/AdminCategoriesView.vue'
 
 const routes = [
     { path: '/login', component: LoginView },
@@ -23,6 +24,10 @@ const routes = [
             {
                 path:'admin/users',
                 component:AdminUsersView
+            },
+            {
+                path:'admin/categories',
+                component:AdminCategoriesView
             }
         ]
     }

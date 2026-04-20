@@ -21,7 +21,10 @@ class TicketPolicy
      */
     public function view(User $user, Ticket $ticket): bool
     {
-        return false;
+        // return false;
+        return $user->isAdmin() || 
+                $user->isAgent() ||
+                $user->id === $ticket->user_id;
     }
 
     /**

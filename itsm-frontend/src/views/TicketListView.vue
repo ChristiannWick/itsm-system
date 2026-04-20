@@ -81,7 +81,7 @@
                 <button 
                 class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
                 >
-                    Create Ticket
+                    {{ editingId ? "Update Ticket" : "Create Ticket" }} 
                 </button>
 
             </form>
@@ -105,6 +105,21 @@
                     {{ ticket.description }}
                 </p>
 
+                <p class="text-sm text-gray-500">
+                    {{ ticket.category }}
+                </p>
+
+                <p
+                v-if="ticket.assignee"
+                class="text-xs text-gray-500"
+                >
+
+                Assigned to:
+
+                {{ ticket.assignee.name }}
+
+                </p>
+
                 <div class="flex gap-2 mt-2">
                     <span 
                         class="text-xs px-2 py-1 rounded"
@@ -125,6 +140,31 @@
                         ⏱ {{ getRemainingTime(ticket.sla_due_at) }}
                     </span>
                 </div>
+                <div v-if="auth.user.role !== 'user'" class="mt-2">
+
+                    <select
+                    @change="assign(ticket,$event)"
+                    class="border rounded p-1 text-sm"
+                    >
+
+                    <option value="">
+                    Assign agent
+                    </option>
+
+                    <option
+                    v-for="a in agents"
+                    :key="a.id"
+                    :value="a.id"
+                    >
+
+                    {{ a.name }}
+
+                    </option>
+
+                    </select>
+
+                </div>
+                
 
                 <div class="mt-4">
 
@@ -134,6 +174,44 @@
                     >
                         Load Comments
                     </button>
+
+                    <button
+                        @click="loadActivities(ticket.id)"
+                        class="text-xs text-blue-500"
+                        >
+
+                        View Activity
+
+                        </button>
+
+
+                        <div
+                        v-if="activities[ticket.id]"
+                        class="mt-3 border-l pl-3 space-y-2"
+                        >
+
+                        <div
+                        v-for="a in activities[ticket.id]"
+                        :key="a.id"
+                        class="text-sm"
+                        >
+
+                        <div class="text-gray-700">
+
+                        {{ a.description }}
+
+                        </div>
+
+                        <div class="text-xs text-gray-400">
+
+                        {{ new Date(a.created_at)
+                        .toLocaleString() }}
+
+                        </div>
+
+                        </div>
+
+                        </div>
 
                     <div v-if="comments[ticket.id]" class="mt-2 space-y-2">
 
@@ -202,11 +280,14 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch  } from 'vue';
-import { getTickets, createTicket, updateTicket, deleteTicket } from '@/api/ticket.api'
+import { getTickets, createTicket, updateTicket, deleteTicket, assignTicket  } from '@/api/ticket.api'
 import { getCategories } from '@/api/category.api'
+import { getAgents, getUsers  } from '@/api/admin.api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRouter } from 'vue-router'
 import { getComments, createComment } from '@/api/comment.api'
+import { getActivities } from '@/api/activity.api'
+
 import _ from 'lodash'
 
 
@@ -228,6 +309,9 @@ const filters = ref({
 })
 const loading = ref(false)
 const editingId = ref(null)
+const agents = ref([])
+const activities = ref({})
+
 
 
 const loadTickets = async () => {
@@ -236,15 +320,20 @@ const loadTickets = async () => {
 }
 
 const submit = async () => {
-    loading.value = true
-    const { data } = await createTicket(form.value)
-    loading.value = false
-    console.log(data, 'data in submit')
+    if (editingId.value) {
+        submitEdit()
+    } else {
+        loading.value = true
+        const { data } = await createTicket(form.value)
+        loading.value = false
+        console.log(data, 'data in submit')
 
-    tickets.value.unshift(data.data)
+        tickets.value.unshift(data.data)
 
-    form.value.title = ''
-    form.value.description = ''
+        form.value.title = ''
+        form.value.description = ''
+    }
+    
 }
 
 const loadCategories = async () => {
@@ -342,13 +431,46 @@ const logout = () => {
     router.push('/login')
 }
 
+// agents 
+const loadAgents = async ()=>{
+
+    const {data} = await getUsers()
+
+    agents.value = data.filter(u=>u.role==='agent')
+
+}
+
+const assign = async(ticket,event)=>{
+
+ const userId = event.target.value
+
+ const {data} = await assignTicket(
+  ticket.id,
+  userId
+ )
+
+ ticket.assignee = data.assignee
+
+ ticket.status = 'in_progress'
+
+}
+
+const loadActivities = async(ticketId)=>{
+
+ const {data} = await getActivities(ticketId)
+
+ activities.value[ticketId] = data
+
+}
+
 let interval = null
 onMounted(() => {
     loadTickets()
     loadCategories()
+    loadAgents()
 
     interval = setInterval(() => {
-        tickets.value = [...tickets.value] // force re-render
+        tickets.value =  [...tickets.value] // force re-render
     }, 60000) // update every minute
 })
 

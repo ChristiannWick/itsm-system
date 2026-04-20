@@ -8,8 +8,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Ticket\StoreTicketRequest;
 use App\Http\Requests\Ticket\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
+use App\Services\ActivityService;
 use App\Services\TicketService;
 use Carbon\Carbon;
+
 
 
 class TicketController extends Controller
@@ -51,12 +53,28 @@ class TicketController extends Controller
         );
     }
 
-    public function store(StoreTicketRequest $request, TicketService $service)
+    public function store(StoreTicketRequest $request, TicketService $service, ActivityService $activityService)
     {
         
+        // $ticket = $service->createTicket($request);
+
+        // // return response()->json($ticket, 201);
+        // return new TicketResource($ticket->load(['user', 'category']));
+
         $ticket = $service->createTicket($request);
 
-        // return response()->json($ticket, 201);
+        // $activityService->log(
+
+        //     $ticket->id,
+
+        //     $request->user()->id,
+
+        //     'created',
+
+        //     'Ticket created'
+
+        // );
+
         return new TicketResource($ticket->load(['user', 'category']));
     }
 
@@ -106,5 +124,53 @@ class TicketController extends Controller
         return response()->json([
             'message' => 'Ticket deleted'
         ]);
+    }
+
+    public function assign(Request $request, Ticket $ticket, ActivityService $activityService)
+    {
+
+        $user = $request->user();
+
+        // only admin or agent can assign
+        if(
+            $user->role !== 'admin' &&
+            $user->role !== 'agent'
+        ){
+            return response()->json([
+                'message'=>'Forbidden'
+            ],403);
+        }
+
+
+        $ticket->assigned_to = $request->assigned_to;
+
+        $ticket->status = 'in_progress';
+
+        $ticket->save();
+
+        $activityService->log(
+
+            $ticket->id,
+
+            $request->user()->id,
+
+            'assigned',
+
+            'Ticket assigned'
+
+        );
+
+
+        return $ticket->load('assignee');
+
+    }
+
+    public function activities(Ticket $ticket)
+    {
+
+        return $ticket->activities()
+            ->with('user')
+            ->get();
+
     }
 }
